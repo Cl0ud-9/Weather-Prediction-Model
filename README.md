@@ -36,6 +36,8 @@ Dataset 7: hyderabad
 Dataset 8: jaipur
 Please refer to the individual dataset files for specific details on each dataset.
 
+The city files come from the Kaggle dataset [Historical Weather Data for Indian Cities](https://www.kaggle.com/datasets/hiteshsoneji/historical-weather-data-for-indian-cities).
+
 Source Code
 The source code for the weather prediction model is available in the Jupyter notebook titled source code.ipynb. You can follow the step-by-step execution in the notebook to understand the implementation of the model.
 
