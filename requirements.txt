@@ -1,4 +1,4 @@
-# Python 3.11 to 3.13. The same versions as the other projects, so they share one environment.
+# Python 3.11 to 3.14. The same versions as the other projects, so they share one environment.
 numpy==2.4.6
 pandas==3.0.6
 scikit-learn==1.9.1

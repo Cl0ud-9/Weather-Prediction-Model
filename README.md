@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://github.com/Cl0ud-9/Weather-Prediction-Model/actions/workflows/ci.yml"><img src="https://github.com/Cl0ud-9/Weather-Prediction-Model/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-source--available-5b4bd5" alt="License: source-available"></a>
-  <img src="https://img.shields.io/badge/python-3.11%E2%80%933.13-3776ab?logo=python&logoColor=white" alt="Python 3.11 to 3.13">
+  <img src="https://img.shields.io/badge/python-3.11%E2%80%933.14-3776ab?logo=python&logoColor=white" alt="Python 3.11 to 3.14">
   <img src="https://img.shields.io/badge/cities-8-2e7d32" alt="Eight cities">
 </p>
 
@@ -27,7 +27,7 @@ Cities: Bengaluru, Bombay, Delhi, Hyderabad, Jaipur, Kanpur, Nagpur and Pune.
 
 ## Quick start
 
-You need Python 3.11, 3.12 or 3.13. The data is in the repository.
+You need Python 3.11, 3.12, 3.13 or 3.14. The data is in the repository.
 
 ```bash
 git clone https://github.com/Cl0ud-9/Weather-Prediction-Model.git
@@ -147,7 +147,7 @@ pytest
 
 The tests build a small file in the source's format, with its quirks, and check the cleaning, the daily rows, that
 targets are the next calendar day, that the backtest only learns from the past, the forecast and the command line.
-They run on every push for Python 3.11 to 3.13. See [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request,
+They run on every push for Python 3.11 to 3.14. See [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request,
 and [SECURITY.md](SECURITY.md) to report a vulnerability. [CHANGELOG.md](CHANGELOG.md) says what changed in each version.
 
 ## License
