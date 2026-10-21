@@ -1,0 +1,10 @@
+Weather Prediction does not bundle third-party code. The material below is used by the project and keeps its own
+terms.
+
+Historical Weather Data for Indian Cities, published on Kaggle by Hitesh Soneji:
+https://www.kaggle.com/datasets/hiteshsoneji/historical-weather-data-for-indian-cities. The eight files in data/ are
+from this dataset, unchanged. See the dataset page for its terms.
+
+The original notebook in notebooks/ was written following a Dataquest walkthrough on weather prediction.
+
+Python packages, installed from PyPI by requirements.txt: NumPy, pandas, scikit-learn and SciPy (BSD 3-Clause).

@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.ipynb text eol=lf
+# The city files are kept exactly as published
+data/*.csv -text

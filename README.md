@@ -1,92 +1,166 @@
-# Weather-Prediction-Model
-# Overview
-This repository contains the necessary files, Jupyter notebooks, and datasets for a weather prediction model. The project is designed for live walkthroughs on Dataquest.
+<h1 align="center">Weather Prediction</h1>
 
-These walkthroughs aim to guide you through the entire process of building an end-to-end weather prediction model, providing a valuable addition to your portfolio.
+<p align="center"><strong>Forecasts tomorrow's temperature, rain and UV index for eight Indian cities from today's weather, and says honestly how good that forecast is.</strong></p>
 
-# Prerequisites
-To successfully engage with and complete this project, it is recommended that you have a solid understanding of the following:
+<p align="center">
+  <a href="https://github.com/Cl0ud-9/Weather-Prediction-Model/actions/workflows/ci.yml"><img src="https://github.com/Cl0ud-9/Weather-Prediction-Model/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-source--available-5b4bd5" alt="License: source-available"></a>
+  <img src="https://img.shields.io/badge/python-3.11%E2%80%933.13-3776ab?logo=python&logoColor=white" alt="Python 3.11 to 3.13">
+  <img src="https://img.shields.io/badge/cities-8-2e7d32" alt="Eight cities">
+</p>
 
-Python syntax, including functions, if statements, and data structures
-Data cleaning techniques
-Pandas syntax
-Usage of Jupyter notebooks
-Basics of machine learning
-Ensure that you have completed the relevant Dataquest courses (or equivalent) before attempting these projects:
+<p align="center">
+  <a href="#quick-start">Quick start</a> &nbsp;·&nbsp;
+  <a href="#how-it-works">How it works</a> &nbsp;·&nbsp;
+  <a href="#results">Results</a> &nbsp;·&nbsp;
+  <a href="#the-data">The data</a> &nbsp;·&nbsp;
+  <a href="#honest-limits">Honest limits</a>
+</p>
 
-Python Introduction
-For Loops and If Statements
-Dictionaries In Python
-Functions and Jupyter Notebook
-Python Intermediate
-Pandas and NumPy Fundamentals
-Data Cleaning
-Machine Learning Fundamentals
+<br>
 
-# Datasets
-This repository includes eight datasets that are integral to the weather prediction model:
+Pick a city and the model predicts the next day's maximum and minimum temperature, total rainfall and UV index, using
+the latest day in the data. Every prediction is checked against the simplest possible forecast, "tomorrow will be like
+today", so you can see what the model actually adds.
 
-Dataset 1: pune
-Dataset 2: bombay
-Dataset 3: delhi
-Dataset 4: kanpur
-Dataset 5: bengaluru
-Dataset 6: nagpur
-Dataset 7: hyderabad
-Dataset 8: jaipur
-Please refer to the individual dataset files for specific details on each dataset.
+Cities: Bengaluru, Bombay, Delhi, Hyderabad, Jaipur, Kanpur, Nagpur and Pune.
 
-The city files come from the Kaggle dataset [Historical Weather Data for Indian Cities](https://www.kaggle.com/datasets/hiteshsoneji/historical-weather-data-for-indian-cities).
+## Quick start
 
-Source Code
-The source code for the weather prediction model is available in the Jupyter notebook titled source code.ipynb. You can follow the step-by-step execution in the notebook to understand the implementation of the model.
+You need Python 3.11, 3.12 or 3.13. The data is in the repository.
 
-# Step-by-Step Execution
+```bash
+git clone https://github.com/Cl0ud-9/Weather-Prediction-Model.git
+cd Weather-Prediction-Model
+python -m venv .venv
+.venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+python predict.py pune
+```
 
-Open the Jupyter notebook source code.ipynb.
-Execute each cell in sequential order.
-Read the comments and markdown cells for explanations and instructions.
-Provide input according to the city you want the predictions.
-Analyze the results and visualize the model's performance.
-Feel free to experiment with parameters or extend the model based on your understanding.
-For any questions or issues, please open an issue on this repository.
+```text
+Pune: data runs to 30 Sep 2023. Forecast for 01 Oct 2023:
+  Maximum temperature (°C)     30.3
+  Minimum temperature (°C)     22.0
+  Precipitation (mm)            3.1
+  UV index                      6.3
 
-# Output
+Mean absolute error over past days (model vs 'tomorrow will be like today'):
+  Maximum temperature (°C)     0.99 vs   0.95   (3565 days)
+  Minimum temperature (°C)     0.66 vs   0.75   (3565 days)
+  Precipitation (mm)           1.52 vs   1.43   (3565 days)
+  UV index                     0.30 vs   0.23   (3565 days)
+```
 
-Screenshots :
-Cities you can choose : Pune, Bombay, Delhi, Nagpur, Kanpur, Hyderabad, Jaipur, Bengaluru.
-Pune
-![image](https://github.com/Cl0ud-9/Weather-Prediction-Model/assets/113829640/d649fa72-8be4-41e1-b37e-8700c3cd3789)
+`python predict.py all` prints the accuracy table below for every city. `--no-backtest` skips the accuracy check.
 
-Predicted precipitation and max temperature of the selected city ( In this case it’s Pune )
-![image](https://github.com/Cl0ud-9/Weather-Prediction-Model/assets/113829640/bd2d9b04-dd2b-4f83-a5e2-925b2fa22494)
- 
-Predicted UV Index and minimum temperature of the selected city ( In this case it’s Pune ) 
+## How it works
 
-![image](https://github.com/Cl0ud-9/Weather-Prediction-Model/assets/113829640/3ec5bb59-4580-49aa-91ea-2c5057d15c82)
- 
-Mean Absolute error for max temperature, Precipitation, UV index and minimum temperature.
-Mumbai
-![image](https://github.com/Cl0ud-9/Weather-Prediction-Model/assets/113829640/18d65970-4605-4d15-803b-c954dab32071)
+```
+hourly readings ──> one row per day ──> today's weather + recent history ──> ridge regression ──> tomorrow
+                    (daily values once,   (yesterday, 7- and 30-day means,
+                     hourly ones averaged, season of the year)
+                     rain summed)
+```
 
-Predicted precipitation and max temperature of the selected city ( In this case it’s Mumbai )
-![image](https://github.com/Cl0ud-9/Weather-Prediction-Model/assets/113829640/d4d6e199-e415-42d7-9a90-d3e4b628cb44)
- 
-Predicted UV Index and minimum temperature of the selected city ( In this case it’s Mumbai ) 
-![image](https://github.com/Cl0ud-9/Weather-Prediction-Model/assets/113829640/8bdfa57a-656b-431b-a9d9-e93cf5598b4e)
- 
-Mean Absolute error for max temperature, Precipitation, UV index and minimum temperature.
+1. **Daily rows.** The source has one row per hour, but its maximum and minimum temperature and its UV index are
+   daily values repeated on all 24 rows. Each day becomes one row: those values once, hourly readings such as
+   humidity and pressure averaged, rain added up, and wind direction averaged as an angle.
+2. **Tomorrow as the target.** Each day is paired with the next calendar day. If the next day is missing from the
+   data, the day is not used, so a gap never turns into a two-day jump.
+3. **Features.** Today's readings, each target's value yesterday and its 7- and 30-day averages, and the time of
+   year as a point on a circle.
+4. **Model.** Ridge regression on standardised features, one model per target.
+5. **Backtest.** The model trains on the first two years, predicts the next 90 days, adds them to its training data
+   and moves on, so it is only ever tested on days after everything it learned from.
 
-Delhi
-![image](https://github.com/Cl0ud-9/Weather-Prediction-Model/assets/113829640/9ff30aa4-1ff1-4a0e-9644-bc3e5e258ac7)
-  
-Predicted precipitation and max temperature of the selected city ( In this case it’s Delhi )
-![image](https://github.com/Cl0ud-9/Weather-Prediction-Model/assets/113829640/0a02e4e2-7bbd-40be-a871-d2d125056131)
- 
-Predicted UV Index and minimum temperature of the selected city ( In this case it’s Delhi ) 
-![image](https://github.com/Cl0ud-9/Weather-Prediction-Model/assets/113829640/17d51fd1-4272-42cf-9ef6-2b4d63ef48ac)
- 
-Mean Absolute error for max temperature, Precipitation, UV index and minimum temperature.
+## Results
 
+Mean absolute error of the model against "tomorrow will be like today", over every backtested day (about 3,200 to
+3,600 days per city). Lower is better; **bold** marks where the model wins.
 
-Happy coding!
+| City | Max temp (°C) | Min temp (°C) | Rain (mm) | UV index |
+|---|---|---|---|---|
+| Bengaluru | **1.10** vs 1.17 | **0.62** vs 0.68 | **1.84** vs 1.92 | 0.37 vs 0.32 |
+| Bombay | 0.74 vs 0.69 | 0.65 vs 0.65 | 2.61 vs 2.30 | 0.27 vs 0.19 |
+| Delhi | **1.26** vs 1.28 | **0.89** vs 1.11 | 1.07 vs 1.03 | 0.37 vs 0.31 |
+| Hyderabad | **1.16** vs 1.17 | **0.71** vs 0.82 | 1.63 vs 1.46 | 0.36 vs 0.30 |
+| Jaipur | **1.12** vs 1.16 | **0.85** vs 1.07 | 0.98 vs 0.89 | 0.34 vs 0.27 |
+| Kanpur | **1.25** vs 1.28 | **0.85** vs 1.07 | 1.25 vs 1.17 | 0.37 vs 0.30 |
+| Nagpur | 1.17 vs 1.16 | **0.75** vs 0.93 | 2.24 vs 1.95 | 0.35 vs 0.29 |
+| Pune | 0.99 vs 0.95 | **0.66** vs 0.75 | 1.52 vs 1.43 | 0.30 vs 0.23 |
+
+What this says: the model forecasts the minimum temperature better than persistence in seven cities out of eight, and
+the maximum temperature about as well. For rain and UV index, the obvious guess wins. A gradient-boosted model trained
+on the same features was tried and did not change this.
+
+## The data
+
+[Historical Weather Data for Indian Cities](https://www.kaggle.com/datasets/hiteshsoneji/historical-weather-data-for-indian-cities)
+on Kaggle, one CSV per city in [data/](data):
+
+| City | Days used | From – to |
+|---|---|---|
+| Bengaluru, Bombay, Hyderabad, Jaipur, Kanpur, Nagpur | about 3,980 each | Jan 2012 – Nov 2023 |
+| Delhi | 4,017 | Jan 2009 – Dec 2023, with gaps |
+| Pune | 4,299 | Jan 2009 – Sep 2023, with gaps |
+
+Cleaning, done when a file is loaded: three empty rows, a full day of rows dated 29 February 2023 (a date that does
+not exist) and repeated hours in the Pune and Delhi files are dropped, and days with fewer than 20 hourly readings are
+left out. The files themselves are unchanged.
+
+## Honest limits
+
+<details>
+<summary>What the forecast can and cannot tell you</summary>
+
+<br>
+
+- **It only knows one place's own past.** Real forecasts use satellites, pressure systems and neighbouring regions.
+  This model sees one city's history, which is why "same as yesterday" is so hard to beat.
+- **The data stops in 2023.** `predict.py` forecasts the day after the last day in the file, not tomorrow's date.
+- **Rain is the hardest.** Most days have none, and the model cannot see a storm coming. Treat its rain number as an
+  expected amount, not a yes-or-no forecast.
+- **UV index is a whole number that rarely changes**, so yesterday's value is already an excellent guess.
+
+</details>
+
+## Project structure
+
+```text
+predict.py                 forecast a city, or print the accuracy table for all of them
+weather/
+  data.py                  reading the hourly files and turning them into days
+  model.py                 features, the ridge model, the backtest and the forecast
+data/                      the eight city files
+notebooks/                 the original 2024 notebook (see notebooks/README.md)
+tests/                     pytest suite on generated data
+```
+
+## Development
+
+```bash
+pip install -r requirements-dev.txt
+ruff check .
+pytest
+```
+
+The tests build a small file in the source's format, with its quirks, and check the cleaning, the daily rows, that
+targets are the next calendar day, that the backtest only learns from the past, the forecast and the command line.
+They run on every push for Python 3.11 to 3.13. See [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request,
+and [SECURITY.md](SECURITY.md) to report a vulnerability. [CHANGELOG.md](CHANGELOG.md) says what changed in each version.
+
+## License
+
+The project is **source-available**: Copyright 2024-2026 Cloud/9, all rights reserved. You can read the source, run it
+for personal, educational and non-commercial research use, and fork it to contribute back. Redistributing it,
+publishing modified copies, running it as a service for other people, selling it, or using it to train other models is
+not allowed without written permission. See [LICENSE](LICENSE) for the full terms.
+
+The weather data and the libraries the project uses keep their own terms, listed in [NOTICE](NOTICE).
+
+<br>
+
+<p align="center">
+  <sub>Made by <a href="https://github.com/Cl0ud-9">Cloud/9</a>.</sub>
+</p>

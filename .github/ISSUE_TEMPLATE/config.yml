@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/Cl0ud-9/Weather-Prediction-Model/security/advisories/new
+    about: Please report vulnerabilities privately, not as a public issue.
+  - name: The weather dataset
+    url: https://www.kaggle.com/datasets/hiteshsoneji/historical-weather-data-for-indian-cities
+    about: Where the eight city files come from.
