@@ -1,7 +1,7 @@
 """Predict tomorrow's weather from today's with ridge regression, and measure it honestly."""
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.metrics import mean_absolute_error
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -87,3 +87,69 @@ def forecast(daily):
               for t in TARGETS}
     values["precipmm"] = max(values["precipmm"], 0.0)  # rain cannot be negative
     return today.index[0] + pd.Timedelta(days=1), values
+
+
+# ---------- Chance of rain
+
+RAIN_MM = 1.0  # a "rainy day" has more than this much rain; lighter amounts are mostly drizzle and dew
+
+
+def new_rain_model():
+    return make_pipeline(StandardScaler(), LogisticRegression(C=0.5, max_iter=2000))
+
+
+def rain_probabilities(train_x, train_rainy, test_x):
+    """The chance of rain for each row of test_x. If the training days were all dry (or all wet) there is nothing to
+    learn from, so every chance is that observed rate."""
+    if train_rainy.nunique() < 2:
+        return np.full(len(test_x), float(train_rainy.mean()))
+    return new_rain_model().fit(train_x, train_rainy).predict_proba(test_x)[:, 1]
+
+
+def rain_backtest(frame, start_days=730, step_days=90):
+    """Walk forward through time like backtest(), forecasting the chance that tomorrow is rainy.
+
+    Returns each tested day's outcome (1 if it rained more than RAIN_MM), the model's probability, and two baselines:
+    persistence (rain tomorrow if it rained today) and climatology (the share of rainy days in that calendar month
+    in the training years).
+    """
+    features = feature_columns(frame)
+    rainy = (frame["next_precipmm"] > RAIN_MM).astype(int)
+    parts = []
+    for start in range(start_days, len(frame), step_days):
+        train, test = frame.iloc[:start], frame.iloc[start:start + step_days]
+        monthly = rainy.iloc[:start].groupby(train.index.month).mean()
+        parts.append(pd.DataFrame({
+            "rained": rainy.iloc[start:start + step_days],
+            "probability": rain_probabilities(train[features], rainy.iloc[:start], test[features]),
+            "persistence": (test["precipmm"] > RAIN_MM).astype(float),
+            "climatology": test.index.month.map(monthly).astype(float),
+        }, index=test.index))
+    if not parts:
+        raise ValueError(f"need more than {start_days} days to backtest; have {len(frame)}")
+    return pd.concat(parts)
+
+
+def rain_scores(predictions):
+    """Brier score (mean squared error of the probability; 0 is perfect) of the model and both baselines."""
+    brier = lambda column: float(np.mean((predictions[column] - predictions["rained"]) ** 2))  # noqa: E731
+    return {"model_brier": brier("probability"), "persistence_brier": brier("persistence"),
+            "climatology_brier": brier("climatology"), "rainy_share": float(predictions["rained"].mean()),
+            "days": len(predictions)}
+
+
+def reliability(predictions, bins=(0, 0.2, 0.4, 0.6, 0.8, 1.0)):
+    """How often it rained when the model gave each range of chances: well calibrated if the two columns agree."""
+    groups = pd.cut(predictions["probability"], bins, include_lowest=True)
+    table = predictions.groupby(groups, observed=True).agg(forecast=("probability", "mean"),
+                                                           rained=("rained", "mean"), days=("rained", "size"))
+    return table
+
+
+def rain_chance(daily):
+    """Train on all history and give the chance that the day after the last day in the data is rainy."""
+    frame = with_targets(daily)
+    today = add_season(add_history(daily)).iloc[[-1]]
+    features = feature_columns(frame)
+    rainy = (frame["next_precipmm"] > RAIN_MM).astype(int)
+    return float(rain_probabilities(frame[features], rainy, today[features])[0])

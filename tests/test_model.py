@@ -47,3 +47,23 @@ def test_command_line(data_dir, capsys):
     predict.main(["pune", "--data-dir", str(data_dir), "--no-backtest"])
     out = capsys.readouterr().out
     assert "Forecast for" in out and "UV index" in out
+
+
+def test_rain_backtest_only_learns_from_the_past(daily):
+    from weather import rain_backtest, rain_scores, reliability
+
+    frame = with_targets(daily)
+    result = rain_backtest(frame, start_days=200, step_days=50)
+    assert result.index.min() == frame.index[200]
+    assert result["probability"].between(0, 1).all()
+    assert set(result["rained"].unique()) <= {0, 1}
+    s = rain_scores(result)
+    assert 0 <= s["model_brier"] <= 1 and s["days"] == len(result)
+    table = reliability(result)
+    assert table["days"].sum() == len(result)
+
+
+def test_rain_chance_is_a_probability(daily):
+    from weather import rain_chance
+
+    assert 0 <= rain_chance(daily) <= 1

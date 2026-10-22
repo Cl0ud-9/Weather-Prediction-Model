@@ -7,4 +7,5 @@ from this dataset, unchanged. See the dataset page for its terms.
 
 The original notebook in notebooks/ was written following a Dataquest walkthrough on weather prediction.
 
-Python packages, installed from PyPI by requirements.txt: NumPy, pandas, scikit-learn and SciPy (BSD 3-Clause).
+Python packages, installed from PyPI by requirements.txt: NumPy, pandas, scikit-learn and SciPy (BSD 3-Clause), and
+Streamlit and Altair, used by the dashboard (Apache License 2.0 and BSD 3-Clause).

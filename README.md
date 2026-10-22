@@ -1,6 +1,6 @@
 <h1 align="center">Weather Prediction</h1>
 
-<p align="center"><strong>Forecasts tomorrow's temperature, rain and UV index for eight Indian cities from today's weather, and says honestly how good that forecast is.</strong></p>
+<p align="center"><strong>Forecasts tomorrow's temperature, chance of rain and UV index for eight Indian cities from today's weather, and says honestly how good that forecast is.</strong></p>
 
 <p align="center">
   <a href="https://github.com/Cl0ud-9/Weather-Prediction-Model/actions/workflows/ci.yml"><img src="https://github.com/Cl0ud-9/Weather-Prediction-Model/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
@@ -19,9 +19,13 @@
 
 <br>
 
-Pick a city and the model predicts the next day's maximum and minimum temperature, total rainfall and UV index, using
-the latest day in the data. Every prediction is checked against the simplest possible forecast, "tomorrow will be like
-today", so you can see what the model actually adds.
+<p align="center">
+  <img src="docs/img/dashboard.png" alt="The dashboard for Pune: tomorrow's maximum and minimum temperature, rain, UV index and a 73% chance of rain, each with its typical error; a chart of the model's past forecasts against what happened; and a table showing that when the model said 69% it rained on 75% of days" width="760">
+</p>
+
+Pick a city and the model predicts the next day's maximum and minimum temperature, rainfall, UV index and **chance of
+rain**, using the latest day in the data. Every prediction is checked against the simplest possible forecasts, such as
+"tomorrow will be like today", so you can see what the model actually adds.
 
 Cities: Bengaluru, Bombay, Delhi, Hyderabad, Jaipur, Kanpur, Nagpur and Pune.
 
@@ -35,7 +39,8 @@ cd Weather-Prediction-Model
 python -m venv .venv
 .venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-python predict.py pune
+python predict.py pune          # in the terminal
+streamlit run app.py            # or the dashboard, at http://localhost:8501
 ```
 
 ```text
@@ -44,15 +49,25 @@ Pune: data runs to 30 Sep 2023. Forecast for 01 Oct 2023:
   Minimum temperature (°C)     22.0
   Precipitation (mm)            3.1
   UV index                      6.3
+  Chance of rain                73%   (more than 1 mm)
 
 Mean absolute error over past days (model vs 'tomorrow will be like today'):
   Maximum temperature (°C)     0.99 vs   0.95   (3565 days)
   Minimum temperature (°C)     0.66 vs   0.75   (3565 days)
   Precipitation (mm)           1.52 vs   1.43   (3565 days)
   UV index                     0.30 vs   0.23   (3565 days)
+
+Chance of rain, Brier score (0 is perfect): 0.091, against 0.121 for 'rain if it rained today' and 0.123 for the usual share of rainy days that month
 ```
 
-`python predict.py all` prints the accuracy table below for every city. `--no-backtest` skips the accuracy check.
+`python predict.py all` prints the accuracy tables below for every city. `--no-backtest` skips the accuracy check.
+
+### The dashboard
+
+`streamlit run app.py` shows the same forecast for any city, each number with how far off it has usually been, a chart
+of the model's past forecasts against what happened, and how often it rained when the model gave each chance. It runs
+as one process with the data in the repository, so [Streamlit Community Cloud](https://share.streamlit.io) can host it
+as it is: **Create app**, pick this repository and `app.py`.
 
 ## How it works
 
@@ -70,7 +85,8 @@ hourly readings ──> one row per day ──> today's weather + recent history
    data, the day is not used, so a gap never turns into a two-day jump.
 3. **Features.** Today's readings, each target's value yesterday and its 7- and 30-day averages, and the time of
    year as a point on a circle.
-4. **Model.** Ridge regression on standardised features, one model per target.
+4. **Model.** Ridge regression on standardised features, one model per target. For the chance of rain, logistic
+   regression on the same features predicts whether tomorrow brings more than 1 mm.
 5. **Backtest.** The model trains on the first two years, predicts the next 90 days, adds them to its training data
    and moves on, so it is only ever tested on days after everything it learned from.
 
@@ -91,8 +107,32 @@ Mean absolute error of the model against "tomorrow will be like today", over eve
 | Pune | 0.99 vs 0.95 | **0.66** vs 0.75 | 1.52 vs 1.43 | 0.30 vs 0.23 |
 
 What this says: the model forecasts the minimum temperature better than persistence in seven cities out of eight, and
-the maximum temperature about as well. For rain and UV index, the obvious guess wins. A gradient-boosted model trained
-on the same features was tried and did not change this.
+the maximum temperature about as well. For the amount of rain and the UV index, the obvious guess wins.
+
+### Chance of rain
+
+Whether it will rain is easier to forecast than how much. The Brier score is the mean squared error of a probability:
+0 is perfect, and always saying 50% scores 0.25. The model beats both "rain tomorrow if it rained today" and the usual
+share of rainy days in that month, in every city:
+
+| City | Model | Same as today | Usual for the month | Rainy days |
+|---|---|---|---|---|
+| Bengaluru | **0.140** | 0.213 | 0.185 | 33% |
+| Bombay | **0.058** | 0.075 | 0.083 | 30% |
+| Delhi | **0.081** | 0.118 | 0.096 | 13% |
+| Hyderabad | **0.098** | 0.145 | 0.133 | 20% |
+| Jaipur | **0.069** | 0.105 | 0.085 | 12% |
+| Kanpur | **0.074** | 0.117 | 0.092 | 14% |
+| Nagpur | **0.079** | 0.112 | 0.110 | 22% |
+| Pune | **0.091** | 0.121 | 0.123 | 26% |
+
+Its chances can be taken at face value. In Pune, on the days it said about 30% it rained on 32% of them, at about 50%
+on 51%, at about 70% on 75%, and at about 90% on 90%.
+
+**Tried and not kept.** A gradient-boosted model on the same features did not beat ridge regression. Giving each city
+the other seven cities' weather of the same day (weather moves across India, so this seemed promising) made the
+forecasts slightly worse in 30 of the 32 city-and-measure pairs (one was better, Kanpur's maximum temperature, and one
+the same): with a few thousand training days, the extra 49 columns cost more in noise than they added.
 
 ## The data
 
@@ -119,8 +159,8 @@ left out. The files themselves are unchanged.
 - **It only knows one place's own past.** Real forecasts use satellites, pressure systems and neighbouring regions.
   This model sees one city's history, which is why "same as yesterday" is so hard to beat.
 - **The data stops in 2023.** `predict.py` forecasts the day after the last day in the file, not tomorrow's date.
-- **Rain is the hardest.** Most days have none, and the model cannot see a storm coming. Treat its rain number as an
-  expected amount, not a yes-or-no forecast.
+- **Rain amounts are the hardest.** Most days have none, and the model cannot see a storm coming. Use the chance of
+  rain, which is well calibrated, rather than the amount.
 - **UV index is a whole number that rarely changes**, so yesterday's value is already an excellent guess.
 
 </details>
@@ -128,10 +168,11 @@ left out. The files themselves are unchanged.
 ## Project structure
 
 ```text
-predict.py                 forecast a city, or print the accuracy table for all of them
+app.py                     the dashboard (Streamlit)
+predict.py                 forecast a city, or print the accuracy tables for all of them
 weather/
   data.py                  reading the hourly files and turning them into days
-  model.py                 features, the ridge model, the backtest and the forecast
+  model.py                 features, the models, the backtests and the forecast, including the chance of rain
 data/                      the eight city files
 notebooks/                 the original 2024 notebook (see notebooks/README.md)
 tests/                     pytest suite on generated data
@@ -146,7 +187,8 @@ pytest
 ```
 
 The tests build a small file in the source's format, with its quirks, and check the cleaning, the daily rows, that
-targets are the next calendar day, that the backtest only learns from the past, the forecast and the command line.
+targets are the next calendar day, that both backtests only learn from the past, the forecast, the chance of rain and
+the command line, and they run the dashboard headless on the real data.
 They run on every push for Python 3.11 to 3.14. See [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request,
 and [SECURITY.md](SECURITY.md) to report a vulnerability. [CHANGELOG.md](CHANGELOG.md) says what changed in each version.
 

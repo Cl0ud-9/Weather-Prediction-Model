@@ -5,6 +5,21 @@ What changed in each version of Weather Prediction.
 The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow
 [Semantic Versioning](https://semver.org).
 
+## [1.1.0] - 2026-10-22
+
+### Added
+
+- Chance of rain: logistic regression on the same features forecasts whether tomorrow brings more than 1 mm. Scored
+  by the Brier score in a walk-forward backtest, it beats "rain if it rained today" and the month's usual share of
+  rainy days in all eight cities, and its chances are well calibrated (in Pune, 70% meant rain on 75% of days).
+  `predict.py` shows it, and `predict.py all` prints the comparison for every city.
+- A dashboard, `streamlit run app.py`: a city's forecast with each number's typical error, the model's past forecasts
+  against what happened, and how often it rained at each chance. Ready for Streamlit Community Cloud.
+
+### Changed
+
+- The README reports an experiment that did not help: adding the other cities' weather made forecasts slightly worse.
+
 ## [1.0.1] - 2026-10-22
 
 ### Changed
